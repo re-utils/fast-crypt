@@ -1,12 +1,12 @@
-# `ucrypt`
+# `fast-crypt`
 Fast crypto library for all runtimes.
 
-## `ucrypt/web`
+## `fast-crypt/web`
 Crypto utilities implemented with WebCrypto.
 
 ## JWT
 ```ts
-import jwt from 'ucrypt/web/jwt';
+import jwt from 'fast-crypt/web/jwt';
 
 // Optional interface for typings
 interface Info {

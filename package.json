@@ -1,5 +1,5 @@
 {
-  "name": "ucrypt",
+  "name": "fast-crypt",
   "version": "0.0.1",
   "description": "Fast crypto library for all runtimes",
   "keywords": [],
