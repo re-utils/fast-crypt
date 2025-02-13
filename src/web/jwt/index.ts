@@ -19,18 +19,13 @@ export interface JWTPayload {
    * Ensure the token is not being used before a specified time.
    */
   nbf?: number;
-
-  /**
-   * Ensure the token is not issued in the future.
-   */
-  iat?: number;
 }
 
 export const encodePart = (part: unknown): string => encodeBase64Url(textEncoder.encode(JSON.stringify(part)));
 export const decodePart = (part: string): unknown => JSON.parse(textDecoder.decode(decodeBase64Url(part)));
 
 export type JWTError = symbol & {
-  description: 'invalid' | 'nbf' | 'exp' | 'iat' | 'mismatch'
+  description: 'invalid' | 'nbf' | 'exp' | 'mismatch'
 };
 
 export default async <T extends Record<string, unknown> = Record<string, unknown>>(key: SignatureKey | [privateKey: SignatureKey, publicKey: SignatureKey], algorithm?: Algorithm): Promise<[
@@ -69,14 +64,11 @@ export default async <T extends Record<string, unknown> = Record<string, unknown
               // Check dates
               const now = Date.now() / 1000 >>> 0;
 
-              if (payload.nbf && payload.nbf > now)
+              if (typeof payload.nbf === 'number' && payload.nbf > now)
                 return Symbol.for('not-before') as JWTError;
 
-              if (payload.exp && payload.exp <= now)
+              if (typeof payload.exp === 'number' && payload.exp <= now)
                 return Symbol.for('expired') as JWTError;
-
-              if (payload.iat && now < payload.iat)
-                return Symbol.for('issued-at') as JWTError;
 
               // Verify the payload
               return await crypto.subtle.verify(alg, importedPublicKey, decodeBase64Url(token.substring(delimIdx + 1)), textEncoder.encode(token.substring(0, delimIdx)))

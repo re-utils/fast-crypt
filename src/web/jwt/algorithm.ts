@@ -2,7 +2,7 @@ export type Algorithm = 'HS256' | 'HS384' | 'HS512' | 'RS256' | 'RS384' | 'RS512
 export type KeyImporterAlgorithm = Parameters<typeof crypto.subtle.importKey>[2] & Record<string, unknown>;
 
 // Only use once so focus more on code size
-const sha = (alg: Algorithm): { name: string } => ({ name: 'SHA-' + alg.slice(2) });
+const sha = (alg: Algorithm): string => 'SHA-' + alg.slice(2);
 
 export default (alg: Algorithm): KeyImporterAlgorithm => {
   switch (alg[0]) {
