@@ -1,7 +1,7 @@
 {
-  "name": "cryptical",
+  "name": "ucrypt",
   "version": "0.0.1",
-  "description": "Example package",
+  "description": "Fast crypto library for all runtimes",
   "keywords": [],
   "license": "MIT",
   "type": "module",

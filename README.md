@@ -1,31 +1,37 @@
-# Library template
+# `ucrypt`
+Fast crypto library for all runtimes.
 
-An NPM library template using Bun.
+## WebCrypto API (`ucrypt/web`)
 
-## Scripts
+## JWT
+```ts
+import jwt from 'ucrypt/web/jwt';
 
-All script sources and usage.
+// Optional interface for typings
+interface Info {
+  name: string
+}
 
-### [Build](./scripts/build.ts)
+// Default algorithm is HS256
+const [signJWT, verifyJWT] = jwt<Info>('secret', 'HS256');
 
-Emit `.js` and `.d.ts` files to [`lib`](./lib).
+const token = await signJWT({
+  name: 'Reve'
+});
 
-### [Publish](./scripts/publish.ts)
+const payload = await verifyJWT(token);
 
-Move [`package.json`](./package.json), [`README.md`](./README.md) to [`lib`](./lib) and publish the package.
+// Handle error
+if (typeof payload === 'symbol') {
+  // Error name in symbol description
+  switch (payload.description) {
+    case 'invalid': // Malformed token
+    case 'nbf': // Does not match 'nbf' header
+    case 'exp': // Does not match 'exp' header
+    case 'iat': // Does not match 'iat' header
+    case 'mismatch': // Invalid token
+  }
+}
 
-### [Bench](./scripts/bench.ts)
-
-Run files that ends with `.bench.ts` extension.
-
-To run a specific file.
-```bash
-bun bench index # Run bench/index.bench.ts
-```
-
-To run the benchmark in `node`, add a `--node` parameter
-```bash
-bun bench --node
-
-bun bench --node index # Run bench/index.bench.ts with node
+payload.name; // Reve
 ```
