@@ -34,8 +34,8 @@ export type JWTError = symbol & {
   description: 'invalid' | 'nbf' | 'exp' | 'iat' | 'mismatch'
 };
 
-export default async <T extends JWTPayload = JWTPayload & Record<string, unknown>>(key: SignatureKey | [privateKey: SignatureKey, publicKey: SignatureKey], algorithm?: Algorithm): Promise<[
-  sign: (payload: T) => Promise<string>,
+export default async <T extends Record<string, unknown> = Record<string, unknown>>(key: SignatureKey | [privateKey: SignatureKey, publicKey: SignatureKey], algorithm?: Algorithm): Promise<[
+  sign: (payload: T & JWTPayload) => Promise<string>,
   verify: (token: string) => Promise<T | JWTError>
 ]> => {
   const [privateKey, publicKey] = Array.isArray(key) ? key : [key, key];
