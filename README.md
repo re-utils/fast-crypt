@@ -1,7 +1,8 @@
 # `ucrypt`
 Fast crypto library for all runtimes.
 
-## WebCrypto API (`ucrypt/web`)
+## `ucrypt/web`
+Crypto utilities implemented with WebCrypto.
 
 ## JWT
 ```ts
@@ -15,23 +16,26 @@ interface Info {
 // Default algorithm is HS256
 const [signJWT, verifyJWT] = jwt<Info>('secret', 'HS256');
 
-const token = await signJWT({
-  name: 'Reve'
-});
+// In request handler
+{
+  // Sign a token
+  const token = await signJWT({ name: 'Reve' });
 
-const payload = await verifyJWT(token);
+  // Get a token payload
+  const payload = await verifyJWT(token);
 
-// Handle error
-if (typeof payload === 'symbol') {
-  // Error name in symbol description
-  switch (payload.description) {
-    case 'invalid': // Malformed token
-    case 'nbf': // Does not match 'nbf' header
-    case 'exp': // Does not match 'exp' header
-    case 'iat': // Does not match 'iat' header
-    case 'mismatch': // Invalid token
+  // Handle error
+  if (typeof payload === 'symbol') {
+    // Error name in symbol description
+    switch (payload.description) {
+      case 'invalid': // Malformed token
+      case 'nbf': // Does not match 'nbf' header
+      case 'exp': // Does not match 'exp' header
+      case 'iat': // Does not match 'iat' header
+      case 'mismatch': // Invalid token
+    }
   }
-}
 
-payload.name; // Reve
+  payload.name; // Reve
+}
 ```
