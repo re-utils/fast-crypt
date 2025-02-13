@@ -5,8 +5,8 @@ Fast crypto library for all runtimes.
 Crypto utilities implemented with WebCrypto.
 
 ## JWT
-Consider reading [this link](https://gist.github.com/samsch/0d1f3d3b4745d778f78b230cf6061452)
-before you consider using JWTs.
+You should read [this link](https://gist.github.com/samsch/0d1f3d3b4745d778f78b230cf6061452)
+before consider using JWTs.
 
 ```ts
 import jwt from 'fast-crypt/web/jwt';
@@ -42,8 +42,8 @@ const [sign, verify] = await jwt<Info>('secret', 'HS256');
 }
 ```
 
-## Signer
-Value signer for signing cookies.
+## Signers
+Message signers for signing cookies.
 
 ### HMAC
 ```ts
@@ -53,13 +53,13 @@ import hmac from 'fast-crypt/web/signer/hmac';
 const [sign, verify] = await hmac('mysecret', 'SHA-256');
 
 {
-  // Sign a value
-  const signedValue = await sign('Reve');
+  // Sign a message
+  const signedValue = await sign('Hi');
 
-  // Verify a signed value
-  const value = await verify(signedValue); // 'Reve'
+  // Verify a signed message
+  const value = await verify(signedValue); // 'Hi'
 
-  // Invalid value
+  // Invalid message
   if (value === null) {
     // Handle errors...
   }
