@@ -1,4 +1,4 @@
-import { encodeBase64, decodeBase64Url, textEncoder, textDecoder } from '../coding';
+import { decodeBase64Url, textEncoder, textDecoder, encodeBase64Url } from '../coding';
 import type { Algorithm } from './algorithm';
 import getKeyAlg from './algorithm';
 import { importPrivateKey, importPublicKey, type SignatureKey } from './key';
@@ -26,8 +26,7 @@ export interface JWTPayload {
   iat?: number;
 }
 
-export const encodeSignature = (buf: Uint8Array): string => encodeBase64(buf).replace(/[/+=]/g, (m) => m === '/' ? '_' : m === '+' ? '-' : '');
-export const encodePart = (part: unknown): string => encodeBase64(textEncoder.encode(JSON.stringify(part))).replace(/[/+=]/g, (m) => m === '/' ? '_' : m === '+' ? '-' : '');
+export const encodePart = (part: unknown): string => encodeBase64Url(textEncoder.encode(JSON.stringify(part)));
 export const decodePart = (part: string): unknown => JSON.parse(textDecoder.decode(decodeBase64Url(part)));
 
 export type JWTError = symbol & {
@@ -54,7 +53,7 @@ export default async <T extends Record<string, unknown> = Record<string, unknown
   return [
     async (payload) => {
       const partialToken = encodedHeader + encodePart(payload);
-      return partialToken + '.' + encodeSignature(new Uint8Array(await crypto.subtle.sign(alg, importedPrivateKey, textEncoder.encode(partialToken))));
+      return partialToken + '.' + encodeBase64Url(new Uint8Array(await crypto.subtle.sign(alg, importedPrivateKey, textEncoder.encode(partialToken))));
     },
 
     async (token) => {
