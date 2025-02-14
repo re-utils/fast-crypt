@@ -17,14 +17,15 @@
   "devDependencies": {
     "@stylistic/eslint-plugin": "latest",
     "@types/bun": "latest",
+    "@types/uglify-js": "latest",
     "eslint": "latest",
     "eslint-plugin-jsdoc": "latest",
     "mitata": "latest",
-    "typescript": "latest",
+    "stnl": "^0.3.5",
     "tsx": "latest",
+    "typescript": "latest",
     "typescript-eslint": "latest",
-    "uglify-js": "latest",
-    "@types/uglify-js": "latest"
+    "uglify-js": "latest"
   },
   "dependencies": {}
 }

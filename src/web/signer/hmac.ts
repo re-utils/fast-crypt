@@ -1,4 +1,5 @@
 import { decodeBase64Url, decodeBase64UrlToString, encodeBase64Url, stringToByteArray, textEncoder } from '../coding';
+import type { Signer } from './types';
 
 export type HashAlgorithm = 'SHA-256' | 'SHA-384' | 'SHA-512';
 export type KeyData = string | BufferSource;
@@ -6,10 +7,7 @@ export type KeyData = string | BufferSource;
 /**
  * A single key signer and verifier
  */
-export default async (secret: KeyData, hashAlg?: HashAlgorithm): Promise<[
-  sign: (msg: string) => Promise<string>,
-  verify: (msg: string) => Promise<string | null>
-]> => {
+export default async (secret: KeyData, hashAlg?: HashAlgorithm): Promise<Signer> => {
   // Prepare the key
   const key = await crypto.subtle.importKey(
     'raw',
@@ -31,13 +29,12 @@ export default async (secret: KeyData, hashAlg?: HashAlgorithm): Promise<[
     },
 
     async (msg) => {
-      const delim = msg.indexOf('.');
+      const delim = msg.lastIndexOf('.');
       if (delim !== -1) {
         try {
           const payload = decodeBase64UrlToString(msg.substring(0, delim));
-          return await crypto.subtle.verify('HMAC', key, decodeBase64Url(msg.slice(delim + 1)), stringToByteArray(payload))
-            ? payload
-            : null;
+          if (await crypto.subtle.verify('HMAC', key, decodeBase64Url(msg.slice(delim + 1)), stringToByteArray(payload)))
+            return payload;
         } catch {}
       }
 
