@@ -28,27 +28,30 @@ export type JWTError = symbol & {
   description: 'invalid' | 'nbf' | 'exp' | 'mismatch'
 };
 
-export default async <T extends Record<string, unknown> = Record<string, unknown>>(key: SignatureKey | [privateKey: SignatureKey, publicKey: SignatureKey], algorithm?: Algorithm): Promise<[
+export default async <T extends Record<string, unknown> = Record<string, unknown>>(key: SignatureKey | CryptoKeyPair, algorithm?: Algorithm): Promise<[
   sign: (payload: T & JWTPayload) => Promise<string>,
   verify: (token: string) => Promise<T | JWTError>
 ]> => {
-  const [privateKey, publicKey] = Array.isArray(key) ? key : [key, key];
+  const [privateKey, publicKey] = (key as CryptoKeyPair).privateKey instanceof CryptoKey
+    ? [(key as CryptoKeyPair).privateKey, (key as CryptoKeyPair).publicKey]
+    : [key as SignatureKey, key as SignatureKey];
 
   // @ts-expect-error Check for key algorithm
-  const alg = getKeyAlg(privateKey.alg ?? algorithm ?? 'HS256');
+  const algName: Algorithm = privateKey.alg ?? algorithm ?? 'HS256';
+  const selectedAlgorithm = getKeyAlg(algName);
 
   // Prepare encoded headers
   // @ts-expect-error Check for key algorithm
-  const encodedHeader = encodePart({ alg, typ: 'JWT', kid: privateKey.alg }) + '.';
+  const encodedHeader = encodePart({ alg: algName, typ: 'JWT', kid: privateKey.alg }) + '.';
 
   // Prepare keys
-  const importedPrivateKey = await importPrivateKey(privateKey, alg);
-  const importedPublicKey = await importPublicKey(publicKey, alg);
+  const importedPrivateKey = await importPrivateKey(privateKey, selectedAlgorithm);
+  const importedPublicKey = await importPublicKey(publicKey, selectedAlgorithm);
 
   return [
     async (payload) => {
       const partialToken = encodedHeader + encodePart(payload);
-      return partialToken + '.' + encodeBase64Url(new Uint8Array(await crypto.subtle.sign(alg, importedPrivateKey, textEncoder.encode(partialToken))));
+      return partialToken + '.' + encodeBase64Url(new Uint8Array(await crypto.subtle.sign(selectedAlgorithm, importedPrivateKey, textEncoder.encode(partialToken))));
     },
 
     async (token) => {
@@ -71,7 +74,7 @@ export default async <T extends Record<string, unknown> = Record<string, unknown
                 return Symbol.for('expired') as JWTError;
 
               // Verify the payload
-              return await crypto.subtle.verify(alg, importedPublicKey, decodeBase64Url(token.substring(delimIdx + 1)), textEncoder.encode(token.substring(0, delimIdx)))
+              return await crypto.subtle.verify(selectedAlgorithm, importedPublicKey, decodeBase64Url(token.substring(delimIdx + 1)), textEncoder.encode(token.substring(0, delimIdx)))
                 ? payload as T
                 : Symbol.for('mismatch') as JWTError;
             }

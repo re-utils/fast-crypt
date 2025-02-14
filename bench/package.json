@@ -1,0 +1,17 @@
+{
+  "name": "bench",
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@types/jsonwebtoken": "^9.0.8",
+    "fast-jwt": "^5.0.5",
+    "hono": "^4.7.1",
+    "jsonwebtoken": "^9.0.2"
+  }
+}

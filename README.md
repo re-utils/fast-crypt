@@ -40,7 +40,7 @@ const [sign, verify] = await jwt<Info>('secret', 'HS256');
 ```
 
 # Signers
-Message signers for signing cookies.
+Message signers for signing values like cookies.
 
 ## HMAC
 
