@@ -8,12 +8,6 @@ const KEY = crypto.randomUUID();
 
 const fastJwtSign = fastJwtSigner({ key: KEY });
 
-// for (let i = 0; i < 3; i++) {
-//   console.log('jsonwebtoken:', baseJwt.sign(DAT[i], KEY));
-//   console.log('fast-crypt:', await cryptSign(DAT[i]));
-//   console.log('hono/jwt:', await honoSign(DAT[i], KEY));
-// }
-
 // Example benchmark
 summary(() => {
   bench('sign - jsonwebtoken (node)', () => {

@@ -68,9 +68,13 @@ const [sign, verify] = await hmac('mysecret', 'SHA-256');
 `node:crypto` based APIs:
 ```ts
 import hmac from 'fast-crypt/node/signer/hmac';
+import { verifier } from 'fast-crypt/node/signer';
 
 // Default hash algorithm is sha256
-const [sign, verify] = hmac('mysecret', 'sha256');
+const sign = hmac('mysecret', 'sha256');
+
+// Create a verifier from current signer
+const verify = verifier(sign);
 
 {
   // Sign a message
