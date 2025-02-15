@@ -1,6 +1,7 @@
 import type { BinaryLike, KeyObject } from 'node:crypto';
 
-export type Signer = (msg: string) => string;
-export type Verifier = (msg: string) => string | null;
+export type SignFn = (msg: string) => string;
+export type VerifyFn = (msg: string) => string | undefined;
+export type Signer = [SignFn, VerifyFn];
 
 export type KeyData = BinaryLike | KeyObject;

@@ -3,14 +3,15 @@ import { test, expect, describe } from 'bun:test';
 import nodeHmac from 'fast-crypt/node/signer/hmac';
 import webHmac from 'fast-crypt/web/signer/hmac';
 
-import { encodeBase64Url } from 'fast-crypt/node/coding';
+import { encodeBase64Url } from 'fast-crypt/web/coding';
 
 describe('HMAC Signer', () => {
   test('Sign & Verify', async () => {
     const KEY = crypto.randomUUID();
 
     const MSG = 'hello';
-    const BASE64_MSG = encodeBase64Url(MSG);
+    const MSG_BUF = Buffer.from(MSG);
+    const BASE64_MSG = encodeBase64Url(MSG_BUF);
 
     {
       const [sign, verify] = nodeHmac(KEY);
