@@ -14,7 +14,7 @@ describe('HMAC Signer', () => {
     const BASE64_MSG = encodeBase64Url(MSG_BUF);
 
     {
-      const [sign, verify] = nodeHmac(KEY);
+      const [sign, verify] = nodeHmac(KEY, 'sha256');
       const signed = sign(MSG);
 
       expect(signed).toStartWith(BASE64_MSG);
