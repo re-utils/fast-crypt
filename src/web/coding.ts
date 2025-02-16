@@ -8,4 +8,5 @@ export const stringToByteArray = (str: string): Uint8Array => Uint8Array.from(st
 export const decodeBase64 = (str: string): Uint8Array => stringToByteArray(atob(str));
 export const decodeBase64Url = (str: string): Uint8Array => stringToByteArray(decodeBase64UrlToString(str));
 
-export const encodeBase64Url = (buf: Uint8Array): string => btoa(String.fromCharCode(...buf)).replace(/[/+=]/g, (m) => m === '/' ? '_' : m === '+' ? '-' : '');
+export const encodeBase64 = (buf: Uint8Array): string => btoa(String.fromCharCode(...buf));
+export const encodeBase64Url = (buf: Uint8Array): string => encodeBase64(buf).replace(/[/+=]/g, (m) => m === '/' ? '_' : m === '+' ? '-' : '');

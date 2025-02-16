@@ -1,4 +1,4 @@
-import { decodeBase64Url, decodeBase64UrlToString, encodeBase64Url, stringToByteArray, textEncoder } from '../coding';
+import { decodeBase64, encodeBase64, stringToByteArray, textEncoder } from '../coding';
 import type { Signer } from './types';
 
 export type HashAlgorithm = 'SHA-256' | 'SHA-384' | 'SHA-512';
@@ -23,17 +23,13 @@ export default async (secret: KeyData, hashAlg?: HashAlgorithm): Promise<Signer>
   );
 
   return [
-    async (msg) => {
-      const encodedBuf = textEncoder.encode(msg);
-      return encodeBase64Url(encodedBuf) + '.' + encodeBase64Url(new Uint8Array(await crypto.subtle.sign('HMAC', key, encodedBuf)));
-    },
-
+    async (msg) => msg + '.' + encodeBase64(new Uint8Array(await crypto.subtle.sign('HMAC', key, textEncoder.encode(msg)))),
     async (msg) => {
       const delim = msg.lastIndexOf('.');
       if (delim !== -1) {
         try {
-          const payload = decodeBase64UrlToString(msg.substring(0, delim));
-          if (await crypto.subtle.verify('HMAC', key, decodeBase64Url(msg.slice(delim + 1)), stringToByteArray(payload)))
+          const payload = msg.substring(0, delim);
+          if (await crypto.subtle.verify('HMAC', key, decodeBase64(msg.slice(delim + 1)), stringToByteArray(payload)))
             return payload;
         } catch {}
       }

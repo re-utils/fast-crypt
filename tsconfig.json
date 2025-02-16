@@ -26,5 +26,6 @@
     "declarationDir": "lib",
     "stripInternal": true,
     "isolatedDeclarations": true
-  }
+  },
+  "include": ["src"]
 }
