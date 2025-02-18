@@ -59,7 +59,7 @@ const [sign, verify] = await hmac('mysecret', 'SHA-256');
   const value = await verify(signedValue); // 'Hi'
 
   // Invalid message
-  if (value === null) {
+  if (value == null) {
     // Handle errors...
   }
 }
@@ -81,7 +81,7 @@ const [sign, verify] = hmac('mysecret', 'sha256');
   const value = verify(signedValue); // 'Hi'
 
   // Invalid message
-  if (value === null) {
+  if (value == null) {
     // Handle errors...
   }
 }

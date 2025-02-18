@@ -33,8 +33,6 @@ export default async (secret: KeyData, hashAlg?: HashAlgorithm): Promise<Signer>
             return payload;
         } catch {}
       }
-
-      return null;
     }
   ];
 };
