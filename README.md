@@ -1,4 +1,3 @@
-# `fast-crypt`
 A low-level fast crypto library for all runtimes.
 
 # Cookie
@@ -34,6 +33,17 @@ const [extractId, setId] = cookie('id', {
   }
 };
 ```
+
+If you are setting a value that may contain [lone surrogates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent#exceptions), you
+should validate the string with `str.isWellFormed()` to avoid throwing errors.
+```ts
+if (str.isWellFormed()) {
+  // No lone surrogates found
+  const cookieValue = setId(userId);
+}
+```
+
+This check is opt-out as in a lot of cases you can ensure that the value does not contain these characters (like encrypted values).
 
 # JWT
 You should read [this link](https://gist.github.com/samsch/0d1f3d3b4745d778f78b230cf6061452)
