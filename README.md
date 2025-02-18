@@ -1,5 +1,39 @@
 # `fast-crypt`
-Fast crypto library for all runtimes.
+A low-level fast crypto library for all runtimes.
+
+# Cookie
+Set and extract cookie values.
+```ts
+import cookie from 'fast-crypt/cookie';
+import * as opts from 'fast-crypt/cookie/options';
+
+// Pre-calculate `${encodeURIComponent(key)}=` and static options
+const [extractId, setId] = cookie('id', {
+  httpOnly: true // This is on by default
+});
+
+// Set cookie in a request handler
+(c) => {
+  c.headers.push([
+    'Set-Cookie',
+    // Dynamically set cookie options
+    setId(userId) + opts.maxAge(7200 * (isAuthor ? 5 : 1))
+  ]);
+};
+
+// Parse cookie in a request handler
+(c) => {
+  const cookie = c.req.headers.get('Cookie');
+  if (cookie !== null) {
+    const userId = extractId(cookie); // string | undefined
+    if (userId != null) {
+      // Do something with the value
+    }
+
+    // Extract other cookies...
+  }
+};
+```
 
 # JWT
 You should read [this link](https://gist.github.com/samsch/0d1f3d3b4745d778f78b230cf6061452)

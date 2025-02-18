@@ -1,17 +1,17 @@
 export type Fn = (value: string) => string | undefined;
 
-export interface CookieKey {
+export type CookieKey = [
   /**
    * Get this key value from the input cookie
    */
-  extract: Fn;
+  extract: Fn,
 
   /**
    * Return a cookie pair.
    * For abitrary strings, you should check with `str.isWellFormed()` before passing to set
    */
-  value: (value: string | number) => string;
-}
+  value: (value: string | number) => string
+];
 
 export interface CookieOptions {
   secure?: boolean;
@@ -56,8 +56,8 @@ export default (name: string, options?: CookieOptions): CookieKey => {
       opts += '; Domain=' + options.path;
   }
 
-  return {
-    extract: (cookie) => {
+  return [
+    (cookie) => {
       const idx = cookie.indexOf(name) + nameLen;
       if (idx !== nameLen - 1) {
         const endIdx = cookie.indexOf(';', idx);
@@ -65,8 +65,8 @@ export default (name: string, options?: CookieOptions): CookieKey => {
       }
     },
 
-    value: opts.length === 0
+    opts.length === 0
       ? (val) => name + (typeof val === 'string' ? encodeURIComponent(val) : val)
       : (val) => name + (typeof val === 'string' ? encodeURIComponent(val) : val) + opts
-  };
+  ];
 };
