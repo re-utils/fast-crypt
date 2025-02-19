@@ -1,4 +1,5 @@
 export default (a: Uint8Array, b: Uint8Array): boolean => {
+  console.log(a, b);
   if (a.length !== b.length) return false;
 
   let res = 0;

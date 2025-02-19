@@ -11,16 +11,9 @@ export const toHex = (arr: Uint8Array): string => {
   return res;
 };
 
-const toByteTable = new Map(toHexTable.map((hex, i) => {
-  const uhex = hex.toUpperCase();
-
-  return [
-    [hex, i],
-    [hex[0] + uhex[1], i],
-    [uhex[0] + hex[1], i],
-    [hex.toUpperCase(), i]
-  ] as const;
-}).flat());
+const toByteTable: number[] = [];
+for (let i = 0; i < 10; i++) toByteTable[i + 48] = i;
+for (let i = 10; i < 16; i++) toByteTable[i + 55] = toByteTable[i + 87] = i;
 
 /**
  * Decode hex to Uint8Array
@@ -28,11 +21,13 @@ const toByteTable = new Map(toHexTable.map((hex, i) => {
 export const toBytes = (hex: string): Uint8Array | undefined => {
   const len = hex.length;
   if ((len & 1) === 0) {
-    const arr = new Uint8Array(len);
+    const arr = new Uint8Array(len / 2);
 
-    for (let i = 0, tmp: number | undefined; i < len; i += 2) {
-      tmp = toByteTable.get(hex.substring(i, i + 2));
-      if (tmp == null) return;
+    for (let i = 0, tmp: number; i < len; i += 2) {
+      // eslint-disable-next-line
+      tmp = (toByteTable[hex.charCodeAt(i)] << 4) | toByteTable[hex.charCodeAt(i + 1)];
+      // eslint-disable-next-line
+      if (tmp !== tmp) return; // NaN
       arr[i >>> 1] = tmp;
     }
 

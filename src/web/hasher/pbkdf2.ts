@@ -3,10 +3,7 @@ import { toBytes, toHex } from '../polyfill/hex';
 import timingSafeEqual from '../polyfill/timingSafeEqual';
 import type { Hasher } from './types';
 
-const ALG = { name: 'PBKDF2' };
 const DERIVE_USAGES = ['deriveBits', 'deriveKey'] as const;
-const ENCRYPT_USAGES = ['encrypt', 'decrypt'] as const;
-const DERIVED_KEY_TYPE = { name: 'AES-GCM', length: 256 };
 
 export interface HashOptions {
   salt?: Uint8Array; // Default to random values
@@ -14,8 +11,8 @@ export interface HashOptions {
   hash?: string; // Default to SHA-256
 }
 
-// https://gist.github.com/pkmanas22/741ef650d5b02abe8e6412fab88d5b8f
-export default ((options = ALG as any) => {
+// https://webkit.org/demos/webcrypto/pbkdf2.html
+export default ((options = {}) => {
   // @ts-expect-error Set algorithm name
   options.name = 'PBKDF2';
 
@@ -24,28 +21,19 @@ export default ((options = ALG as any) => {
   options.iterations ??= 1e5;
   options.hash ??= 'SHA-256';
 
-  const hash = async (pwd: string): Promise<Uint8Array> => new Uint8Array(await crypto.subtle.exportKey(
-    'raw',
-    await crypto.subtle.deriveKey(
-      options as {
-        name: 'PBKDF2',
-        salt: Uint8Array,
-        iterations: number,
-        hash: string
-      },
+  const length = options.salt.length * 8;
 
-      await crypto.subtle.importKey(
-        'raw',
-        textEncoder.encode(pwd),
-        ALG,
-        false,
-        ENCRYPT_USAGES
-      ),
-
-      DERIVED_KEY_TYPE,
-      true,
+  // Hash to Uint8Array for later timingSafeEqual comparison
+  const hash = async (pwd: string): Promise<Uint8Array> => new Uint8Array(await crypto.subtle.deriveBits(
+    options as HashOptions & { name: 'PBKDF2' },
+    await crypto.subtle.importKey(
+      'raw',
+      textEncoder.encode(pwd),
+      'PBKDF2',
+      false,
       DERIVE_USAGES
-    )
+    ),
+    length
   ));
 
   return [
