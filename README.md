@@ -132,3 +132,22 @@ const [sign, verify] = hmac('mysecret', 'sha256');
   }
 }
 ```
+
+# Hashers
+Hashing messages.
+
+## PBKDF2
+Hash passwords with WebCrypto API:
+```ts
+import pbkdf2 from 'fast-crypt/web/hasher/pbkdf2';
+
+const [hash, verify] = pbkdf2({
+  salt?: Uint8Array, // Default to random values
+  iterations?: number, // Default to 1e5
+  hash?: string, // Default to SHA-256
+});
+
+const pwd = 'admin';
+const hashed = await hash(pwd);
+await verify(hashed, pwd) === true;
+```
