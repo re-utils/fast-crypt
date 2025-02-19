@@ -13,16 +13,6 @@ export type CookieKey = [
   value: (value: string | number) => string
 ];
 
-export interface CookieOptions {
-  secure?: boolean;
-  httpOnly?: boolean;
-  partitioned?: boolean;
-  sameSite?: 'Strict' | 'Lax' | 'None';
-  maxAge?: number;
-  path?: string;
-  domain?: string;
-}
-
 // Encode and decode without throwing errors
 export const safeDecode: Fn = (val) => {
   try {
@@ -30,31 +20,10 @@ export const safeDecode: Fn = (val) => {
   } catch { }
 };
 
-export default (name: string, options?: CookieOptions): CookieKey => {
+export default (name: string, suffix: string = '; HttpOnly'): CookieKey => {
   // Pre-encode the key
   name = encodeURIComponent(name) + '=';
   const nameLen = name.length;
-
-  // Pre-calculate options
-  let opts = '; HttpOnly';
-  if (options != null) {
-    // Unset httpOnly when forced to
-    if (options.httpOnly === false)
-      opts = '';
-    if (options.secure === true)
-      opts += '; Secure';
-    if (options.partitioned === true)
-      opts += '; Partitioned';
-
-    if (options.sameSite != null)
-      opts += '; SameSite=' + options.sameSite;
-    if (options.maxAge != null)
-      opts += '; Max-Age=' + options.maxAge;
-    if (options.path != null)
-      opts += '; Path=' + options.path;
-    if (options.domain != null)
-      opts += '; Domain=' + options.path;
-  }
 
   return [
     (cookie) => {
@@ -64,9 +33,6 @@ export default (name: string, options?: CookieOptions): CookieKey => {
         return safeDecode(endIdx === -1 ? cookie.slice(idx) : cookie.substring(idx, endIdx));
       }
     },
-
-    opts.length === 0
-      ? (val) => name + (typeof val === 'string' ? encodeURIComponent(val) : val)
-      : (val) => name + (typeof val === 'string' ? encodeURIComponent(val) : val) + opts
+    (val) => name + (typeof val === 'string' ? encodeURIComponent(val) : val) + suffix
   ];
 };

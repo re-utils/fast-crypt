@@ -7,9 +7,11 @@ import cookie from 'fast-crypt/cookie';
 import * as opts from 'fast-crypt/cookie/options';
 
 // Pre-calculate `${encodeURIComponent(key)}=` and static options
-const [extractId, setId] = cookie('id', {
-  httpOnly: true // This is on by default
-});
+const [extractId, setId] = cookie(
+  'id',
+  // Static options
+  opts.sameSiteLax + opts.secure
+);
 
 // Set cookie in a request handler
 (c) => {
