@@ -15,7 +15,7 @@ export interface HashOptions {
 }
 
 // https://gist.github.com/pkmanas22/741ef650d5b02abe8e6412fab88d5b8f
-export default ((options: HashOptions = ALG as any) => {
+export default ((options = ALG as any) => {
   // @ts-expect-error Set algorithm name
   options.name = 'PBKDF2';
 
@@ -55,4 +55,4 @@ export default ((options: HashOptions = ALG as any) => {
       return hashedBytes != null && timingSafeEqual(await hash(pwd), hashedBytes);
     }
   ];
-}) as (salt?: Uint8Array) => Hasher;
+}) as (options?: HashOptions) => Hasher;
