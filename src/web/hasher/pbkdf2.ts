@@ -6,41 +6,59 @@ import type { Hasher } from './types';
 const DERIVE_USAGES = ['deriveBits', 'deriveKey'] as const;
 
 export interface HashOptions {
-  salt?: Uint8Array; // Default to random values
+  saltLen?: number;
   iterations?: number; // Default to 1e5
   hash?: string; // Default to SHA-256
 }
 
+const hash = async (pwd: string, options: {
+  name: 'PBKDF2',
+  salt: Uint8Array,
+  iterations: number,
+  hash: string
+}): Promise<Uint8Array> => new Uint8Array(await crypto.subtle.deriveBits(
+  options,
+  await crypto.subtle.importKey(
+    'raw',
+    textEncoder.encode(pwd),
+    'PBKDF2',
+    false,
+    DERIVE_USAGES
+  ),
+  options.salt.length * 8
+));
+
 // https://webkit.org/demos/webcrypto/pbkdf2.html
 export default ((options = {}) => {
-  // @ts-expect-error Set algorithm name
-  options.name = 'PBKDF2';
+  const saltLen = options.saltLen ?? 16;
 
-  // Set default params
-  options.salt ??= crypto.getRandomValues(new Uint8Array(16));
-  options.iterations ??= 1e5;
-  options.hash ??= 'SHA-256';
-
-  const length = options.salt.length * 8;
-
-  // Hash to Uint8Array for later timingSafeEqual comparison
-  const hash = async (pwd: string): Promise<Uint8Array> => new Uint8Array(await crypto.subtle.deriveBits(
-    options as HashOptions & { name: 'PBKDF2' },
-    await crypto.subtle.importKey(
-      'raw',
-      textEncoder.encode(pwd),
-      'PBKDF2',
-      false,
-      DERIVE_USAGES
-    ),
-    length
-  ));
+  const proto = {
+    name: 'PBKDF2',
+    salt: null,
+    iterations: options.iterations ?? 1e5,
+    hash: options.hash ?? 'SHA-256'
+  };
 
   return [
-    (pwd) => hash(pwd).then(toHex),
+    async (pwd) => {
+      const salt = crypto.getRandomValues(new Uint8Array(saltLen));
+      const opts = Object.create(proto);
+      // eslint-disable-next-line
+      opts.salt = salt;
+
+      return toHex(salt) + ':' + toHex(await hash(pwd, opts));
+    },
     async (hashed, pwd) => {
-      const hashedBytes = toBytes(hashed);
-      return hashedBytes != null && timingSafeEqual(await hash(pwd), hashedBytes);
+      const delim = hashed.indexOf(':');
+      if (delim !== -1) {
+        const hashedPwd = toBytes(hashed.substring(delim + 1));
+        if (hashedPwd != null) {
+          const opts = Object.create(proto);
+          // eslint-disable-next-line
+          opts.salt = toBytes(hashed.substring(0, delim));
+          return timingSafeEqual(await hash(pwd, opts), hashedPwd);
+        }
+      }
     }
   ];
 }) as (options?: HashOptions) => Hasher;
