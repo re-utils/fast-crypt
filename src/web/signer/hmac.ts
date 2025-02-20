@@ -1,7 +1,7 @@
 import { decodeBase64, encodeBase64, stringToByteArray, textEncoder } from '../coding';
+import type { HashAlgorithm } from '../types';
 import type { Signer } from './types';
 
-export type HashAlgorithm = 'SHA-256' | 'SHA-384' | 'SHA-512';
 export type KeyData = string | BufferSource;
 
 /**

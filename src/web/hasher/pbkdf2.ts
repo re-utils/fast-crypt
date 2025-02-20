@@ -1,67 +1,74 @@
 import { textEncoder } from '../coding';
 import { toBytes, toHex } from '../polyfill/hex';
 import timingSafeEqual from '../polyfill/timingSafeEqual';
+import type { HashAlgorithm } from '../types';
 import type { Hasher } from './types';
 
-const DERIVE_USAGES = ['deriveBits', 'deriveKey'] as const;
+const DERIVE_USAGES = ['deriveBits'] as const;
 
 export interface HashOptions {
   saltLen?: number;
   iterations?: number; // Default to 1e5
-  hash?: string; // Default to SHA-256
+  hash?: HashAlgorithm; // Default to SHA-256
 }
-
-const hash = async (pwd: string, options: {
-  name: 'PBKDF2',
-  salt: Uint8Array,
-  iterations: number,
-  hash: string
-}): Promise<Uint8Array> => new Uint8Array(await crypto.subtle.deriveBits(
-  options,
-  await crypto.subtle.importKey(
-    'raw',
-    textEncoder.encode(pwd),
-    'PBKDF2',
-    false,
-    DERIVE_USAGES
-  ),
-  options.salt.length * 8
-));
 
 // https://webkit.org/demos/webcrypto/pbkdf2.html
 export default ((options = {}) => {
-  const saltLen = options.saltLen ?? 16;
-
   const proto = {
     name: 'PBKDF2',
     salt: null,
     iterations: options.iterations ?? 1e5,
     hash: options.hash ?? 'SHA-256'
+  } as const;
+
+  // Select correct size for output to avoid unnecessary rehashing
+  // https://www.chosenplaintext.ca/2015/10/08/pbkdf2-design-flaw.html
+  const outputBitLen = +proto.hash.slice(4);
+
+  // Hash password to Uint8Array
+  const hash = async (
+    pwd: string,
+    salt: Uint8Array
+  ): Promise<Uint8Array> => {
+    const opts = Object.create(proto);
+    // eslint-disable-next-line
+    opts.salt = salt;
+
+    return new Uint8Array(await crypto.subtle.deriveBits(
+      opts,
+      await crypto.subtle.importKey(
+        'raw',
+        textEncoder.encode(pwd),
+        'PBKDF2',
+        false,
+        DERIVE_USAGES
+      ),
+      outputBitLen
+    ));
   };
+
+  // Expected length
+  const outputLen = outputBitLen >>> 3;
+  const saltLen = options.saltLen ?? 16;
+
+  // The expected positions
+  const sepPos = saltLen << 1;
+  const outputPos = sepPos + 1;
+  const expectedLen = outputPos + (outputLen << 1);
 
   return [
     async (pwd) => {
       const salt = crypto.getRandomValues(new Uint8Array(saltLen));
-      const opts = Object.create(proto);
-      // eslint-disable-next-line
-      opts.salt = salt;
-
-      return toHex(salt) + ':' + toHex(await hash(pwd, opts));
+      return toHex(salt) + '.' + toHex(await hash(pwd, salt));
     },
+
     async (hashed, pwd) => {
-      const delim = hashed.indexOf(':');
-      if (delim !== -1) {
-        const hashedPwd = toBytes(hashed.substring(delim + 1));
-        if (hashedPwd != null) {
-          const salt = toBytes(hashed.substring(0, delim));
-          if (salt != null) {
-            const opts = Object.create(proto);
-            // eslint-disable-next-line
-            opts.salt = salt;
-            return timingSafeEqual(await hash(pwd, opts), hashedPwd);
-          }
-        }
-      }
+      if (hashed.length !== expectedLen && hashed.charCodeAt(sepPos) !== 46)
+        return false;
+
+      const salt = toBytes(hashed, 0, saltLen);
+      const hashedPwd = toBytes(hashed, outputPos, outputLen);
+      return salt != null && hashedPwd != null && timingSafeEqual(await hash(pwd, salt), hashedPwd);
     }
   ];
 }) as (options?: HashOptions) => Hasher;

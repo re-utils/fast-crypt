@@ -142,7 +142,7 @@ Hash passwords with WebCrypto API:
 import pbkdf2 from 'fast-crypt/web/hasher/pbkdf2';
 
 const [hash, verify] = pbkdf2({
-  salt?: Uint8Array, // Default to random values
+  saltLen?: number, // The salt length to generate
   iterations?: number, // Default to 1e5
   hash?: string, // Default to SHA-256
 });

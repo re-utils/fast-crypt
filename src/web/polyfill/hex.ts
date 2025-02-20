@@ -18,19 +18,17 @@ for (let i = 10; i < 16; i++) toByteTable[i + 55] = toByteTable[i + 87] = i;
 /**
  * Decode hex to Uint8Array
  */
-export const toBytes = (hex: string): Uint8Array | undefined => {
-  const len = hex.length;
-  if ((len & 1) === 0) {
-    const arr = new Uint8Array(len / 2);
+export const toBytes = (hex: string, start: number, chars: number): Uint8Array | undefined => {
+  const arr = new Uint8Array(chars);
 
-    for (let i = 0, tmp: number; i < len; i += 2) {
-      // eslint-disable-next-line
-      tmp = (toByteTable[hex.charCodeAt(i)] << 4) | toByteTable[hex.charCodeAt(i + 1)];
-      // eslint-disable-next-line
-      if (tmp !== tmp) return; // NaN
-      arr[i >>> 1] = tmp;
-    }
-
-    return arr;
+  chars <<= 1;
+  for (let i = 0, tmp: number; i < chars; i += 2) {
+    // eslint-disable-next-line
+    tmp = (toByteTable[hex.charCodeAt(i + start)] << 4) | toByteTable[hex.charCodeAt(i + start + 1)];
+    // eslint-disable-next-line
+    if (tmp !== tmp) return; // NaN
+    arr[i >>> 1] = tmp;
   }
+
+  return arr;
 };
