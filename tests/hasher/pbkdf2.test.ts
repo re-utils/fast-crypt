@@ -9,7 +9,14 @@ describe('PBKDF2 hasher', () => {
     {
       const [hash, verify] = pbkdf2();
       const hashed = await hash(MSG);
+
+      const [hash1, verify1] = pbkdf2();
+      const hashed1 = await hash1(MSG);
+
       expect(await verify(hashed, MSG)).toBe(true);
+      expect(await verify(hashed1, MSG)).toBe(true);
+      expect(await verify1(hashed, MSG)).toBe(true);
+      expect(await verify1(hashed1, MSG)).toBe(true);
     }
   });
 });

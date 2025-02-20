@@ -53,10 +53,13 @@ export default ((options = {}) => {
       if (delim !== -1) {
         const hashedPwd = toBytes(hashed.substring(delim + 1));
         if (hashedPwd != null) {
-          const opts = Object.create(proto);
-          // eslint-disable-next-line
-          opts.salt = toBytes(hashed.substring(0, delim));
-          return timingSafeEqual(await hash(pwd, opts), hashedPwd);
+          const salt = toBytes(hashed.substring(0, delim));
+          if (salt != null) {
+            const opts = Object.create(proto);
+            // eslint-disable-next-line
+            opts.salt = salt;
+            return timingSafeEqual(await hash(pwd, opts), hashedPwd);
+          }
         }
       }
     }
