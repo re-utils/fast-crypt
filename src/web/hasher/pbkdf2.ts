@@ -1,6 +1,5 @@
 import { textEncoder } from '../coding';
-import { toBytes, toHex } from '../polyfill/hex';
-import timingSafeEqual from '../polyfill/timingSafeEqual';
+import { toBytes, toHexTable } from '../polyfill/hex';
 import type { HashAlgorithm } from '../types';
 import type { Hasher } from './types';
 
@@ -58,17 +57,35 @@ export default ((options = {}) => {
 
   return [
     async (pwd) => {
+      let str = '';
+
       const salt = crypto.getRandomValues(new Uint8Array(saltLen));
-      return toHex(salt) + '.' + toHex(await hashToBytes(pwd, salt)) + meta;
+      for (let i = 0; i < salt.length; i++) str += toHexTable[salt[i]];
+
+      str += '.';
+
+      const buf = await hashToBytes(pwd, salt);
+      for (let i = 0; i < buf.length; i++) str += toHexTable[buf[i]];
+
+      return str + meta;
     },
 
     async (hashed, pwd) => {
-      if (hashed.length !== expectedLen && hashed.charCodeAt(sepPos) !== 46)
-        return false;
+      if (hashed.length === expectedLen && hashed.charCodeAt(sepPos) === 46) {
+        const salt = toBytes(hashed, 0, saltLen);
+        const hashedPwd = toBytes(hashed, outputPos, outputLen);
 
-      const salt = toBytes(hashed, 0, saltLen);
-      const hashedPwd = toBytes(hashed, outputPos, outputLen);
-      return salt != null && hashedPwd != null && timingSafeEqual(await hashToBytes(pwd, salt), hashedPwd);
+        if (salt != null && hashedPwd != null) {
+          const curHash = await hashToBytes(pwd, salt);
+          if (curHash.length === hashedPwd.length) {
+            let res = 0;
+            for (let i = 0; i < hashedPwd.length; i++) res |= curHash[i] ^ hashedPwd[i];
+            return res === 0;
+          }
+        }
+      }
+
+      return false;
     }
   ];
 }) as (options?: HashOptions) => Hasher;
