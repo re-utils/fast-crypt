@@ -13,6 +13,8 @@ describe('PBKDF2 hasher', () => {
       const [hash1, verify1] = pbkdf2();
       const hashed1 = await hash1(MSG);
 
+      console.log(hashed);
+
       expect(await verify(hashed, MSG)).toBe(true);
       expect(await verify(hashed1, MSG)).toBe(true);
       expect(await verify1(hashed, MSG)).toBe(true);

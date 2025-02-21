@@ -15,25 +15,23 @@ export interface HashOptions {
 export default ((options = {}) => {
   // @ts-expect-error Make options the prototype
   options.name = 'PBKDF2';
+  options.iterations ??= 1e5;
   const alg = options.hash ??= 'SHA-256';
-
-  // Store meta for recovery
-  const meta = '.' + btoa(alg) + '.' + btoa('' + (options.iterations ??= 1e5));
 
   // Select correct size for output to avoid unnecessary rehashing
   // https://www.chosenplaintext.ca/2015/10/08/pbkdf2-design-flaw.html
   const outputBitLen = +alg.slice(4);
 
   // Hash password to Uint8Array
-  const hashToBytes = async (
+  const hash = async (
     pwd: string,
     salt: Uint8Array
-  ): Promise<Uint8Array> => {
+  ): Promise<ArrayBuffer> => {
     const opts = Object.create(options);
     // eslint-disable-next-line
     opts.salt = salt;
 
-    return new Uint8Array(await crypto.subtle.deriveBits(
+    return crypto.subtle.deriveBits(
       opts,
       await crypto.subtle.importKey(
         'raw',
@@ -43,7 +41,7 @@ export default ((options = {}) => {
         DERIVE_USAGES
       ),
       outputBitLen
-    ));
+    );
   };
 
   // Expected length
@@ -53,21 +51,24 @@ export default ((options = {}) => {
   // The expected positions
   const sepPos = saltLen << 1;
   const outputPos = sepPos + 1;
-  const expectedLen = outputPos + (outputLen << 1) + meta.length;
+  const expectedLen = outputPos + (outputLen << 1);
 
   return [
     async (pwd) => {
       let str = '';
 
+      // Convert salt to hex
       const salt = crypto.getRandomValues(new Uint8Array(saltLen));
       for (let i = 0; i < salt.length; i++) str += toHexTable[salt[i]];
 
+      // Separate salt and payload
       str += '.';
 
-      const buf = await hashToBytes(pwd, salt);
-      for (let i = 0; i < buf.length; i++) str += toHexTable[buf[i]];
+      // Convert payload to hex
+      const buf = new DataView(await hash(pwd, salt));
+      for (let i = 0; i < buf.byteLength; i++) str += toHexTable[buf.getUint8(i)];
 
-      return str + meta;
+      return str;
     },
 
     async (hashed, pwd) => {
@@ -76,10 +77,12 @@ export default ((options = {}) => {
         const hashedPwd = toBytes(hashed, outputPos, outputLen);
 
         if (salt != null && hashedPwd != null) {
-          const curHash = await hashToBytes(pwd, salt);
-          if (curHash.length === hashedPwd.length) {
+          const curHash = new DataView(await hash(pwd, salt));
+
+          // Timing safe equal
+          if (curHash.byteLength === hashedPwd.length) {
             let res = 0;
-            for (let i = 0; i < hashedPwd.length; i++) res |= curHash[i] ^ hashedPwd[i];
+            for (let i = 0; i < hashedPwd.length; i++) res |= curHash.getUint8(i) ^ hashedPwd[i];
             return res === 0;
           }
         }
