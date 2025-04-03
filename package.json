@@ -1,8 +1,13 @@
 {
   "name": "fast-crypt",
-  "version": "0.0.18",
-  "description": "",
-  "keywords": [],
+  "version": "0.0.19",
+  "description": "A fast cross-runtime crypto library",
+  "keywords": [
+    "library",
+    "crypto",
+    "cross-runtime",
+    "fast"
+  ],
   "license": "MIT",
   "type": "module",
   "main": "./index.js",
