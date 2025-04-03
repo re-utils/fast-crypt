@@ -1,0 +1,32 @@
+{
+  "name": "fast-crypt",
+  "version": "0.0.1",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.js",
+  "types": "./index.d.ts",
+  "scripts": {
+    "task": "bun scripts/task.ts",
+    "fmt": "biome format ./src",
+    "build:test": "bun task build && bun test",
+    "build:publish": "bun task build && bun task report-size && bun task publish"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.2.8",
+    "ciorent": "^0.0.17",
+    "mitata": "^1.0.34",
+    "terser": "^5.39.0",
+    "tsx": "^4.19.3"
+  },
+  "exports": {
+    ".": "./index.mjs"
+  },
+  "dependencies": {
+    "@biomejs/biome": "^1.9.4"
+  },
+  "trustedDependencies": [
+    "@biomejs/biome"
+  ]
+}
