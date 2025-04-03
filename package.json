@@ -1,6 +1,6 @@
 {
   "name": "fast-crypt",
-  "version": "0.0.1",
+  "version": "0.0.18",
   "description": "",
   "keywords": [],
   "license": "MIT",
@@ -21,9 +21,6 @@
     "terser": "^5.39.0",
     "tsx": "^4.19.3",
     "typescript": "^5.8.2"
-  },
-  "exports": {
-    ".": "./index.mjs"
   },
   "trustedDependencies": [
     "@biomejs/biome"
