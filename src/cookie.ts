@@ -1,13 +1,3 @@
-export type Parser<T = unknown> = [
-  encode: (value: T) => string,
-  decode: (value: string) => T | undefined,
-];
-
-export interface Options<T> {
-  options: string;
-  parser: Parser<T>;
-}
-
 // Cookie options
 export const path = (str: string): string => '; Path=' + str;
 export const domain = (str: string): string => '; Domain=' + str;

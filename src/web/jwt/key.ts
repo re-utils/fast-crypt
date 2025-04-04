@@ -58,11 +58,8 @@ export async function importPublicKey(
 ): Promise<CryptoKey> {
   if (key instanceof CryptoKey) {
     if (key.type === 'public' || key.type === 'secret') return key;
-
     key = await exportPublicJWK(key);
-  }
-
-  if (typeof key === 'string' && key.includes('PRIVATE'))
+  } else if (typeof key === 'string' && key.includes('PRIVATE'))
     key = await exportPublicJWK(
       await crypto.subtle.importKey(
         'pkcs8',

@@ -61,10 +61,7 @@ export default async <
     encodePart({ alg: algName, typ: 'JWT', kid: privateKey.alg }) + '.';
 
   // Prepare keys
-  const importedPrivateKey = await importPrivateKey(
-    privateKey,
-    selectedAlgorithm,
-  );
+  const importedPrivateKey = await importPrivateKey(privateKey, selectedAlgorithm);
   const importedPublicKey = await importPublicKey(publicKey, selectedAlgorithm);
 
   return [
