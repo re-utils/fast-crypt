@@ -1,6 +1,5 @@
 /// <reference types='bun-types' />
 import { existsSync, rmSync } from 'node:fs';
-import * as latch from 'ciorent/latch';
 
 import { transpileDeclaration } from 'typescript';
 import tsconfig from '../tsconfig.json';
