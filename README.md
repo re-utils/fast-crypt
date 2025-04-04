@@ -7,11 +7,7 @@ import * as cookie from 'fast-crypt/cookie';
 
 // Pre-calculate `${encodeURIComponent(key)}=` and static options
 const [extractId, setId] = cookie.key(
-  'id',
-  // Static options
-  cookie.sameSiteLax + cookie.secure,
-  // Integer parser
-  cookie.t_int,
+  'id', cookie.sameSiteLax + cookie.secure
 );
 
 // Set cookie in a request handler
@@ -27,40 +23,13 @@ const [extractId, setId] = cookie.key(
 (c) => {
   const cookie = c.req.headers.get('Cookie');
   if (cookie !== null) {
-    const userId = extractId(cookie); // number | undefined
+    const userId = extractId(cookie); // string | undefined
     if (userId != null) {
-      // Do something with the value
+      // Parse the value
     }
-
-    // Extract other cookies...
   }
 };
-
-{
-  // Custom value parser
-  const parser: cookie.Parser<number> = [
-    // Encoder
-    (val) => '' + val,
-    // Decoder
-    (str) => +str
-  ];
-
-  const [extract, set] = cookie.key(
-    'id', '', parser
-  );
-}
 ```
-
-If you are setting a value with `cookie.t_string` parser that can contain [lone surrogates](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/encodeURIComponent#exceptions), you
-should validate the string with `str.isWellFormed()` to avoid throwing errors.
-```ts
-if (str.isWellFormed()) {
-  // No lone surrogates found
-  const cookieValue = setId(userId);
-}
-```
-
-This check is opt-out as in a lot of cases you can ensure that the value does not contain these characters (like encrypted values).
 
 # JWT
 You should read [this link](https://gist.github.com/samsch/0d1f3d3b4745d778f78b230cf6061452)

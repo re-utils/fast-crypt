@@ -26,57 +26,26 @@ export const sameSiteStrict = '; SameSite=Strict';
 export const sameSiteNone = '; SameSite=None; Secure';
 
 // Create a key encoder and decoder
-export const key = <T extends Parser>(
+export const key = (
   name: string,
-  options: string,
-  [encode, decode]: T,
-): T => {
+  options: string
+): [
+  encode: (value: string | number) => string,
+  decode: (value: string) => string | undefined
+] => {
   // Pre-encode the key
   name = encodeURIComponent(name) + '=';
   const nameLen = name.length;
 
   return [
-    (val) => name + encode(val) + options,
+    (val) => name + val + options,
     (cookie) => {
       let idx = cookie.indexOf(name);
       if (idx !== -1) {
         idx += nameLen;
         const endIdx = cookie.indexOf(';', idx);
-        return decode(
-          endIdx === -1 ? cookie.slice(idx) : cookie.substring(idx, endIdx),
-        );
+        return endIdx === -1 ? cookie.slice(idx) : cookie.substring(idx, endIdx)
       }
     },
-  ] as T;
+  ];
 };
-
-export const noopEncoder = (val: any): any => val;
-
-// Key parser
-// eslint-disable-next-line
-export const t_string: Parser<string> = [
-  encodeURIComponent,
-  (str) => {
-    try {
-      return decodeURIComponent(str);
-    } catch {}
-  },
-];
-
-// eslint-disable-next-line
-export const t_float: Parser<number> = [
-  noopEncoder,
-  (str) => {
-    const val = +str;
-    if (Number.isFinite(val)) return val;
-  },
-];
-
-// eslint-disable-next-line
-export const t_int: Parser<number> = [
-  noopEncoder,
-  (str) => {
-    const val = +str;
-    if (Number.isInteger(val)) return val;
-  },
-];
