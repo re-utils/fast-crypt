@@ -6,7 +6,8 @@ import type { Signer } from './types.js';
  * A single key signer and verifier
  */
 export default (secret: BinaryLike | KeyObject, hashAlg: string): Signer => [
-  (val: string): string => val + '.' + createHmac(hashAlg, secret).update(val).digest('base64url'),
+  (val: string): string =>
+    val + '.' + createHmac(hashAlg, secret).update(val).digest('base64url'),
   (val: string) => {
     const idx = val.lastIndexOf('.');
     if (idx !== -1) {
@@ -15,7 +16,11 @@ export default (secret: BinaryLike | KeyObject, hashAlg: string): Signer => [
       const actual = createHmac(hashAlg, secret).update(extractedVal).digest();
       const expected = Buffer.from(val.substring(idx + 1), 'base64url');
 
-      if (actual.byteLength === expected.byteLength && timingSafeEqual(actual, expected)) return extractedVal;
+      if (
+        actual.byteLength === expected.byteLength &&
+        timingSafeEqual(actual, expected)
+      )
+        return extractedVal;
     }
-  }
+  },
 ];

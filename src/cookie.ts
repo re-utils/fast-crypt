@@ -1,6 +1,6 @@
 export type Parser<T = unknown> = [
   encode: (value: T) => string,
-  decode: (value: string) => T | undefined
+  decode: (value: string) => T | undefined,
 ];
 
 export interface Options<T> {
@@ -11,7 +11,8 @@ export interface Options<T> {
 // Cookie options
 export const path = (str: string): string => '; Path=' + str;
 export const domain = (str: string): string => '; Domain=' + str;
-export const expires = (date: Date): string => '; Expires=' + date.toUTCString();
+export const expires = (date: Date): string =>
+  '; Expires=' + date.toUTCString();
 export const maxAge = (age: number): string => '; Max-Age=' + age;
 
 export const httpOnly = '; HttpOnly';
@@ -25,7 +26,11 @@ export const sameSiteStrict = '; SameSite=Strict';
 export const sameSiteNone = '; SameSite=None; Secure';
 
 // Create a key encoder and decoder
-export const key = <T extends Parser>(name: string, options: string, [encode, decode]: T): T => {
+export const key = <T extends Parser>(
+  name: string,
+  options: string,
+  [encode, decode]: T,
+): T => {
   // Pre-encode the key
   name = encodeURIComponent(name) + '=';
   const nameLen = name.length;
@@ -37,9 +42,11 @@ export const key = <T extends Parser>(name: string, options: string, [encode, de
       if (idx !== -1) {
         idx += nameLen;
         const endIdx = cookie.indexOf(';', idx);
-        return decode(endIdx === -1 ? cookie.slice(idx) : cookie.substring(idx, endIdx));
+        return decode(
+          endIdx === -1 ? cookie.slice(idx) : cookie.substring(idx, endIdx),
+        );
       }
-    }
+    },
   ] as T;
 };
 
@@ -53,7 +60,7 @@ export const t_string: Parser<string> = [
     try {
       return decodeURIComponent(str);
     } catch {}
-  }
+  },
 ];
 
 // eslint-disable-next-line
@@ -62,7 +69,7 @@ export const t_float: Parser<number> = [
   (str) => {
     const val = +str;
     if (Number.isFinite(val)) return val;
-  }
+  },
 ];
 
 // eslint-disable-next-line
@@ -71,5 +78,5 @@ export const t_int: Parser<number> = [
   (str) => {
     const val = +str;
     if (Number.isInteger(val)) return val;
-  }
+  },
 ];

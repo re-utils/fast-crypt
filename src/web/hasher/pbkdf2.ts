@@ -16,17 +16,14 @@ export default ((options = {}) => {
   // @ts-expect-error Make options the prototype
   options.name = 'PBKDF2';
   options.iterations ??= 1e5;
-  const alg = options.hash ??= 'SHA-256';
+  const alg = (options.hash ??= 'SHA-256');
 
   // Select correct size for output to avoid unnecessary rehashing
   // https://www.chosenplaintext.ca/2015/10/08/pbkdf2-design-flaw.html
   const outputBitLen = +alg.slice(4);
 
   // Hash password to Uint8Array
-  const hash = async (
-    pwd: string,
-    salt: Uint8Array
-  ): Promise<ArrayBuffer> => {
+  const hash = async (pwd: string, salt: Uint8Array): Promise<ArrayBuffer> => {
     const opts = Object.create(options);
     // eslint-disable-next-line
     opts.salt = salt;
@@ -38,9 +35,9 @@ export default ((options = {}) => {
         textEncoder.encode(pwd),
         'PBKDF2',
         false,
-        DERIVE_USAGES
+        DERIVE_USAGES,
       ),
-      outputBitLen
+      outputBitLen,
     );
   };
 
@@ -66,7 +63,8 @@ export default ((options = {}) => {
 
       // Convert payload to hex
       const buf = new DataView(await hash(pwd, salt));
-      for (let i = 0; i < buf.byteLength; i++) str += toHexTable[buf.getUint8(i)];
+      for (let i = 0; i < buf.byteLength; i++)
+        str += toHexTable[buf.getUint8(i)];
 
       return str;
     },
@@ -81,6 +79,6 @@ export default ((options = {}) => {
       }
 
       return false;
-    }
+    },
   ];
 }) as (options?: HashOptions) => Hasher;

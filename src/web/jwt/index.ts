@@ -1,4 +1,9 @@
-import { decodeBase64Url, textEncoder, textDecoder, encodeBase64Url } from '../coding.js';
+import {
+  decodeBase64Url,
+  textEncoder,
+  textDecoder,
+  encodeBase64Url,
+} from '../coding.js';
 import type { Algorithm } from './algorithm.js';
 import getKeyAlg from './algorithm.js';
 import { importPrivateKey, importPublicKey, type SignatureKey } from './key.js';
@@ -21,37 +26,63 @@ export interface JWTPayload {
   nbf?: number;
 }
 
-export const encodePart = (part: unknown): string => encodeBase64Url(textEncoder.encode(JSON.stringify(part)));
-export const decodePart = (part: string): unknown => JSON.parse(textDecoder.decode(decodeBase64Url(part)));
+export const encodePart = (part: unknown): string =>
+  encodeBase64Url(textEncoder.encode(JSON.stringify(part)));
+export const decodePart = (part: string): unknown =>
+  JSON.parse(textDecoder.decode(decodeBase64Url(part)));
 
 export type JWTError = symbol & {
-  description: 'invalid' | 'nbf' | 'exp' | 'mismatch'
+  description: 'invalid' | 'nbf' | 'exp' | 'mismatch';
 };
 
-export default async <T extends Record<string, unknown> = Record<string, unknown>>(key: SignatureKey | CryptoKeyPair, algorithm?: Algorithm): Promise<[
-  sign: (payload: T & JWTPayload) => Promise<string>,
-  verify: (token: string) => Promise<T | JWTError>
-]> => {
-  const [privateKey, publicKey] = (key as CryptoKeyPair).privateKey instanceof CryptoKey
-    ? [(key as CryptoKeyPair).privateKey, (key as CryptoKeyPair).publicKey]
-    : [key as SignatureKey, key as SignatureKey];
+export default async <
+  T extends Record<string, unknown> = Record<string, unknown>,
+>(
+  key: SignatureKey | CryptoKeyPair,
+  algorithm?: Algorithm,
+): Promise<
+  [
+    sign: (payload: T & JWTPayload) => Promise<string>,
+    verify: (token: string) => Promise<T | JWTError>,
+  ]
+> => {
+  const [privateKey, publicKey] =
+    (key as CryptoKeyPair).privateKey instanceof CryptoKey
+      ? [(key as CryptoKeyPair).privateKey, (key as CryptoKeyPair).publicKey]
+      : [key as SignatureKey, key as SignatureKey];
 
   // @ts-expect-error Check for key algorithm
   const algName: Algorithm = privateKey.alg ?? algorithm ?? 'HS256';
   const selectedAlgorithm = getKeyAlg(algName);
 
   // Prepare encoded headers
-  // @ts-expect-error Check for key algorithm
-  const encodedHeader = encodePart({ alg: algName, typ: 'JWT', kid: privateKey.alg }) + '.';
+  const encodedHeader =
+    // @ts-expect-error Check for key algorithm
+    encodePart({ alg: algName, typ: 'JWT', kid: privateKey.alg }) + '.';
 
   // Prepare keys
-  const importedPrivateKey = await importPrivateKey(privateKey, selectedAlgorithm);
+  const importedPrivateKey = await importPrivateKey(
+    privateKey,
+    selectedAlgorithm,
+  );
   const importedPublicKey = await importPublicKey(publicKey, selectedAlgorithm);
 
   return [
     async (payload) => {
       const partialToken = encodedHeader + encodePart(payload);
-      return partialToken + '.' + encodeBase64Url(new Uint8Array(await crypto.subtle.sign(selectedAlgorithm, importedPrivateKey, textEncoder.encode(partialToken))));
+      return (
+        partialToken +
+        '.' +
+        encodeBase64Url(
+          new Uint8Array(
+            await crypto.subtle.sign(
+              selectedAlgorithm,
+              importedPrivateKey,
+              textEncoder.encode(partialToken),
+            ),
+          ),
+        )
+      );
     },
 
     async (token) => {
@@ -61,11 +92,13 @@ export default async <T extends Record<string, unknown> = Record<string, unknown
 
         if (delimIdx !== -1) {
           try {
-            const payload = decodePart(token.substring(encodedHeader.length, delimIdx)) as JWTPayload | null;
+            const payload = decodePart(
+              token.substring(encodedHeader.length, delimIdx),
+            ) as JWTPayload | null;
 
             if (typeof payload === 'object' && payload !== null) {
               // Check dates
-              const now = Date.now() / 1000 >>> 0;
+              const now = (Date.now() / 1000) >>> 0;
 
               if (typeof payload.nbf === 'number' && payload.nbf > now)
                 return Symbol.for('nbf') as JWTError;
@@ -74,20 +107,20 @@ export default async <T extends Record<string, unknown> = Record<string, unknown
                 return Symbol.for('exp') as JWTError;
 
               // Verify the payload
-              return await crypto.subtle.verify(
+              return (await crypto.subtle.verify(
                 selectedAlgorithm,
                 importedPublicKey,
                 decodeBase64Url(token.substring(delimIdx + 1)),
-                textEncoder.encode(token.substring(0, delimIdx))
-              )
-                ? payload as T
-                : Symbol.for('mismatch') as JWTError;
+                textEncoder.encode(token.substring(0, delimIdx)),
+              ))
+                ? (payload as T)
+                : (Symbol.for('mismatch') as JWTError);
             }
-          } catch { }
+          } catch {}
         }
       }
 
       return Symbol.for('invalid') as JWTError;
-    }
+    },
   ];
 };
