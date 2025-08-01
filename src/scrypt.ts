@@ -84,6 +84,8 @@ export const verify = async (pwd: string, hash: string): Promise<boolean> => {
       Number.isSafeInteger(p) &&
       N > 0 &&
       N < 64 &&
+      p > 0 &&
+      r > 0 &&
       p * r <= 1073741824
     ) {
       const salt = Buffer.from(parts[4], 'base64');
