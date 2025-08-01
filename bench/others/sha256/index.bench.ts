@@ -15,8 +15,8 @@ summary(() => {
 
       bench(msg: string) {
         do_not_optimize(ohash(msg));
-      }
-    }
+      },
+    };
   });
 
   bench('optimized ohash', function* () {
@@ -27,8 +27,8 @@ summary(() => {
 
       bench(msg: string) {
         do_not_optimize(optimized(msg));
-      }
-    }
+      },
+    };
   });
 
   bench('node crypto', function* () {
@@ -39,8 +39,8 @@ summary(() => {
 
       bench(msg: string) {
         do_not_optimize(hash('sha256', msg, 'base64url'));
-      }
-    }
+      },
+    };
   });
 
   bench('web crypto', function* () {
@@ -53,12 +53,12 @@ summary(() => {
         do_not_optimize(
           encodeBase64Url(
             new Uint8Array(
-              await crypto.subtle.digest('SHA-256', textEncoder.encode(msg))
-            )
-          )
+              await crypto.subtle.digest('SHA-256', textEncoder.encode(msg)),
+            ),
+          ),
         );
-      }
-    }
+      },
+    };
   });
 });
 

@@ -22,7 +22,7 @@ const K = [
 ];
 
 const base64KeyStr =
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_';
 
 // Reusable object
 const W: number[] = [];
@@ -138,7 +138,7 @@ class SHA256 {
 
   _append(data: string | WordArray) {
     // Convert string to WordArray, else assume WordArray already
-    if (typeof data === "string") {
+    if (typeof data === 'string') {
       data = WordArray.fromUtf8(data);
     }
 
@@ -219,7 +219,7 @@ class WordArray {
         );
       }
     }
-    return base64Chars.join("");
+    return base64Chars.join('');
   }
 
   concat(wordArray: WordArray) {

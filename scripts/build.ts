@@ -7,8 +7,7 @@ import pkg from '../package.json';
 import { cp, LIB, ROOT, SOURCE } from './utils.js';
 
 // Remove old content
-if (existsSync(LIB))
-  rmSync(LIB, { recursive: true });
+if (existsSync(LIB)) rmSync(LIB, { recursive: true });
 
 // Transpile files concurrently
 (async () => {
@@ -19,11 +18,11 @@ if (existsSync(LIB))
     // Lighter output
     minifyWhitespace: true,
     treeShaking: true,
-    trimUnusedImports: true
+    trimUnusedImports: true,
   });
 
   // @ts-ignore
-  const exports = pkg.exports = {} as Record<string, string>;
+  const exports = (pkg.exports = {} as Record<string, string>);
 
   const promises: Promise<any>[] = [];
 
@@ -33,21 +32,27 @@ if (existsSync(LIB))
         const pathNoExt = path.substring(0, path.lastIndexOf('.') >>> 0);
 
         const buf = await Bun.file(`${SOURCE}/${path}`).text();
-        Bun.write(`${LIB}/${pathNoExt}.d.ts`, transpileDeclaration(buf, tsconfig as any).outputText);
+        Bun.write(
+          `${LIB}/${pathNoExt}.d.ts`,
+          transpileDeclaration(buf, tsconfig as any).outputText,
+        );
 
         const transformed = await transpiler.transform(buf);
         if (transformed !== '')
-          Bun.write(`${LIB}/${pathNoExt}.js`, transformed.replace(/const /g, 'let '));
+          Bun.write(
+            `${LIB}/${pathNoExt}.js`,
+            transformed.replace(/const /g, 'let '),
+          );
 
         exports[
           pathNoExt === 'index'
             ? '.'
-            : './' + (pathNoExt.endsWith('/index')
-              ? pathNoExt.slice(0, -6)
-              : pathNoExt
-            )
+            : './' +
+              (pathNoExt.endsWith('/index')
+                ? pathNoExt.slice(0, -6)
+                : pathNoExt)
         ] = './' + pathNoExt + (transformed === '' ? '.d.ts' : '.js');
-      })()
+      })(),
     );
   }
 

@@ -9,7 +9,9 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@types/cookie": "^1.0.0",
     "@types/jsonwebtoken": "^9.0.8",
+    "cookie": "^1.0.2",
     "cookie-signature": "^1.2.2",
     "fast-jwt": "^5.0.5",
     "hono": "^4.7.1",

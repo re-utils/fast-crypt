@@ -28,7 +28,8 @@ summary(() => {
 });
 
 {
-  const createTokens = (f: (d: typeof DAT[number]) => Promise<any>) => Promise.all(DAT.map(f));
+  const createTokens = (f: (d: (typeof DAT)[number]) => Promise<any>) =>
+    Promise.all(DAT.map(f));
 
   const fastCryptTokens = await createTokens(fastCryptSign);
   const honoTokens = await createTokens((d) => honoSign(d, KEY));

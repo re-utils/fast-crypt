@@ -6,14 +6,13 @@ import { sign as cookieSign, unsign as cookieVerify } from 'cookie-signature';
 
 const KEY = crypto.randomUUID();
 const HASH = 'sha256';
-const DAT = new Array(500).fill(0).map(() =>  '' + Math.random());
+const DAT = new Array(500).fill(0).map(() => '' + Math.random());
 
 const [cryptSign, cryptVerify] = cryptHmac(KEY, HASH);
 
 summary(() => {
   bench('sign - fast-crypt', () => {
-    for (let i = 0; i < DAT.length; i++)
-      do_not_optimize(cryptSign(DAT[i]));
+    for (let i = 0; i < DAT.length; i++) do_not_optimize(cryptSign(DAT[i]));
   });
 
   bench('sign - node-cookie-signature', () => {

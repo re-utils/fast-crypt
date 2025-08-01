@@ -16,8 +16,7 @@ summary(() => {
   });
 
   bench('sign - fast-jwt (node)', () => {
-    for (let i = 0; i < DAT.length; i++)
-      do_not_optimize(fastJwtSign(DAT[i]));
+    for (let i = 0; i < DAT.length; i++) do_not_optimize(fastJwtSign(DAT[i]));
   });
 });
 

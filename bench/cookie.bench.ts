@@ -1,7 +1,8 @@
 import { Cookie, CookieMap } from 'bun';
 
-import cookie from 'fast-crypt/cookie';
-import * as opts from 'fast-crypt/cookie/options';
+import * as cookie from 'fast-crypt/cookie';
+import { parse as cookieParse } from 'cookie';
+import { parse as honoParse } from 'hono/utils/cookie';
 
 import { summary, run, bench, do_not_optimize } from 'mitata';
 
@@ -12,62 +13,71 @@ summary(() => {
         return Math.random();
       },
       bench(n: string) {
-        do_not_optimize(Cookie.from('id', n, {
-          httpOnly: true,
-          secure: true
-        }).serialize());
-      }
-    }
-  });
-
-  bench('fast-crypt', function* () {
-    const [_, setId] = cookie('id', opts.httpOnly + opts.secure);
-
-    yield {
-      [0]() {
-        return Math.random() + '';
+        do_not_optimize(
+          Cookie.from('id', n, {
+            httpOnly: true,
+            secure: true,
+          }).serialize(),
+        );
       },
-      bench(n: string) {
-        do_not_optimize(setId(n));
-      }
-    }
+    };
   });
 });
 
 summary(() => {
+  const values = new Array(500)
+    .fill(0)
+    .map(
+      () =>
+        `name=${Math.random()}; theme=${Math.random()}; foo=${Math.random()}`,
+    );
+
   bench('Bun.CookieMap', function* () {
     yield {
       [0]() {
-        return `name=${Math.random()}&theme=${Math.random()}&foo=${Math.random()}`;
+        return values;
       },
-      bench(str: string) {
-        const cookie = new CookieMap(str);
-        do_not_optimize([
-          cookie.get('name'),
-          cookie.get('theme'),
-          cookie.get('foo')
-        ]);
-      }
-    }
+      bench(str: string[]) {
+        for (let i = 0; i < str.length; i++) {
+          const parsed = new CookieMap(str[i]);
+          do_not_optimize(parsed.get('name'));
+          do_not_optimize(parsed.get('theme'));
+          do_not_optimize(parsed.get('foo'));
+        }
+      },
+    };
   });
 
-  bench('fast-crypt', function* () {
-    const [getName] = cookie('name');
-    const [getTheme] = cookie('theme');
-    const [getFoo] = cookie('foo');
-
+  bench('cookie', function* () {
     yield {
       [0]() {
-        return `name=${Math.random()}&theme=${Math.random()}&foo=${Math.random()}`;
+        return values;
       },
-      bench(str: string) {
-        do_not_optimize([
-          getName(str),
-          getTheme(str),
-          getFoo(str)
-        ]);
-      }
-    }
+      bench(str: string[]) {
+        for (let i = 0; i < str.length; i++) {
+          const parsed = cookieParse(str[i]);
+          do_not_optimize(parsed.name);
+          do_not_optimize(parsed.theme);
+          do_not_optimize(parsed.foo);
+        }
+      },
+    };
+  });
+
+  bench('hono', function* () {
+    yield {
+      [0]() {
+        return values;
+      },
+      bench(str: string[]) {
+        for (let i = 0; i < str.length; i++) {
+          const parsed = honoParse(str[i]);
+          do_not_optimize(parsed.name);
+          do_not_optimize(parsed.theme);
+          do_not_optimize(parsed.foo);
+        }
+      },
+    };
   });
 });
 

@@ -1,6 +1,12 @@
 // Based on https://github.com/brix/crypto-js 4.1.1 (MIT)
 
-import { concatWords, initWords, initWordsFromUtf8, wordsToBase64, type Words } from "./word-array";
+import {
+  concatWords,
+  initWords,
+  initWordsFromUtf8,
+  wordsToBase64,
+  type Words,
+} from './word-array';
 
 // Initialization and round constants tables
 const H = [
@@ -23,32 +29,21 @@ const K = [
   -1_866_530_822, -1_538_233_109, -1_090_935_817, -965_641_998,
 ];
 
-
 // Reusable object
 const W: number[] = [];
 
-type Hasher = [
-  dat: Words,
-  hash: Words,
-  nDataBytes: number,
-  minBufSize: number
-];
+type Hasher = [dat: Words, hash: Words, nDataBytes: number, minBufSize: number];
 
-const init = (): Hasher => [
-  [[], 0],
-  initWords([...H]),
-  0, 0
-];
+const init = (): Hasher => [[[], 0], initWords([...H]), 0, 0];
 
 const append = (hasher: Hasher, data: string | Words) => {
   // Convert string to WordArray, else assume WordArray already
-  if (typeof data === "string")
-    data = initWordsFromUtf8(data);
+  if (typeof data === 'string') data = initWordsFromUtf8(data);
 
   // Append
   concatWords(hasher[0], data);
   hasher[2] += data[1];
-}
+};
 
 const processBlock = (hasher: Hasher, M: number[], offset: number) => {
   // Shortcut
@@ -84,15 +79,16 @@ const processBlock = (hasher: Hasher, M: number[], offset: number) => {
       W[i] = gamma0 + W[i - 7] + gamma1 + W[i - 16];
     }
 
-    const t1 = h + (
+    const t1 =
+      h +
       // sigma1
-      ((e << 26) | (e >>> 6)) ^
-      ((e << 21) | (e >>> 11)) ^
-      ((e << 7) | (e >>> 25))
-    ) + (
+      (((e << 26) | (e >>> 6)) ^
+        ((e << 21) | (e >>> 11)) ^
+        ((e << 7) | (e >>> 25))) +
       // ch
-      (e & f) ^ (~e & g)
-    ) + K[i] + W[i];
+      ((e & f) ^ (~e & g)) +
+      K[i] +
+      W[i];
 
     h = g;
     g = f;
@@ -101,18 +97,17 @@ const processBlock = (hasher: Hasher, M: number[], offset: number) => {
     d = c;
     c = b;
     b = a;
-    a = (t1 + (
-      // t2
-      (
+    a =
+      (t1 +
+        // t2
+
         // sigma0
-        ((a << 30) | (a >>> 2)) ^
-        ((a << 19) | (a >>> 13)) ^
-        ((a << 10) | (a >>> 22))
-      ) + (
-        // maj
-        (a & b) ^ (a & c) ^ (b & c)
-      )
-    )) | 0;
+        ((((a << 30) | (a >>> 2)) ^
+          ((a << 19) | (a >>> 13)) ^
+          ((a << 10) | (a >>> 22))) +
+          // maj
+          ((a & b) ^ (a & c) ^ (b & c)))) |
+      0;
   }
 
   // Intermediate hash value
@@ -124,18 +119,18 @@ const processBlock = (hasher: Hasher, M: number[], offset: number) => {
   H[5] = (H[5] + f) | 0;
   H[6] = (H[6] + g) | 0;
   H[7] = (H[7] + h) | 0;
-}
+};
 
 const process = (hasher: Hasher, doFlush?: boolean): Words => {
   const data = hasher[0];
 
   // Count blocks ready
   const nBlocksReady = doFlush
-    // Round up to include partial blocks
-    ? Math.ceil(data[1] / 64)
-    // Round down to include only full blocks,
-    // less the number of blocks that must remain in the buffer
-    : Math.max((data[1] / 64 | 0) - hasher[3], 0);
+    ? // Round up to include partial blocks
+      Math.ceil(data[1] / 64)
+    : // Round down to include only full blocks,
+      // less the number of blocks that must remain in the buffer
+      Math.max(((data[1] / 64) | 0) - hasher[3], 0);
 
   // Count words ready
   const nWordsReady = nBlocksReady * 16;
@@ -156,7 +151,7 @@ const process = (hasher: Hasher, doFlush?: boolean): Words => {
 
   // Return processed words
   return [[], nBytesReady];
-}
+};
 
 const finalize = (hasher: Hasher): Words => {
   const data = hasher[0];
@@ -178,10 +173,10 @@ const finalize = (hasher: Hasher): Words => {
 
   // Return final computed hash
   return hasher[1];
-}
+};
 
 export default (msg: string): string => {
   const t = init();
   append(t, msg);
   return wordsToBase64(finalize(t));
-}
+};

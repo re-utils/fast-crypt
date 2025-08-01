@@ -14,20 +14,23 @@
   "types": "./index.d.ts",
   "scripts": {
     "task": "bun scripts/task.ts",
-    "fmt": "biome format ./src",
+    "fmt": "biome format .",
     "build:test": "bun task build && bun test",
     "build:publish": "bun task build && bun task report-size && bun task publish"
   },
   "devDependencies": {
-    "@types/bun": "^1.2.8",
+    "@types/bun": "^1.2.10",
     "@biomejs/biome": "^1.9.4",
     "ciorent": "^0.0.17",
     "mitata": "^1.0.34",
     "terser": "^5.39.0",
     "tsx": "^4.19.3",
-    "typescript": "^5.8.2"
+    "typescript": "^5.8.3"
   },
   "trustedDependencies": [
     "@biomejs/biome"
-  ]
+  ],
+  "peerDependencies": {
+    "@safe-std/error": "^1.0.0"
+  }
 }

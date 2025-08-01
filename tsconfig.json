@@ -21,10 +21,7 @@
     "noImplicitThis": true,
     "noUnusedParameters": false,
     "noPropertyAccessFromIndexSignature": false,
-    // Declaration options
-    "declaration": true,
-    "declarationDir": "lib",
-    "stripInternal": true,
-    "isolatedDeclarations": true
+    "noEmit": true,
+    "allowImportingTsExtensions": true
   }
 }
