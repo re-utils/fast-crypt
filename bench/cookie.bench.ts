@@ -1,6 +1,5 @@
 import { Cookie, CookieMap } from 'bun';
 
-import * as cookie from 'fast-crypt/cookie';
 import { parse as cookieParse } from 'cookie';
 import { parse as honoParse } from 'hono/utils/cookie';
 
