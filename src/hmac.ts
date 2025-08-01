@@ -1,17 +1,17 @@
-import { type Secret, timingSafeEqual } from './utils.js';
+import { type SecretKey, timingSafeEqual } from './utils.js';
 import { createHmac } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 
 export const sign = (
   algorithm: string,
-  secret: Secret,
+  secret: SecretKey,
   value: string,
 ): string =>
   value + '.' + createHmac(algorithm, secret).update(value).digest('base64url');
 
 export const verify = (
   algorithm: string,
-  secret: Secret,
+  secret: SecretKey,
   value: string,
 ): string | undefined => {
   const idx = value.lastIndexOf('.');

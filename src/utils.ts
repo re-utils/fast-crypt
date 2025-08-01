@@ -5,7 +5,7 @@ import {
 } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 
-export type Secret = BinaryLike | KeyObject;
+export type SecretKey = BinaryLike | KeyObject;
 
 export const timingSafeEqual = (
   a: NodeJS.ArrayBufferView,
