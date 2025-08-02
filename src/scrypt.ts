@@ -1,6 +1,7 @@
 import { randomBytes, scrypt, type BinaryLike } from 'node:crypto';
 import { Buffer } from 'node:buffer';
 import { err, type Err } from '@safe-std/error';
+import { timingSafeEqual } from './utils.ts';
 
 export interface Options {
   /**
@@ -99,7 +100,7 @@ export const verify = async (pwd: string, hash: string): Promise<boolean> => {
             hashKey.byteLength,
             { N: 2 ** N, r, p },
             (err, pwdHash) => {
-              res(err == null && pwdHash.compare(hashKey) === 0);
+              res(err == null && timingSafeEqual(pwdHash, hashKey));
             },
           ),
         );
