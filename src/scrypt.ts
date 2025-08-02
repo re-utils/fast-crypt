@@ -1,6 +1,5 @@
 import { randomBytes, scrypt, type BinaryLike } from 'node:crypto';
 import { Buffer } from 'node:buffer';
-import { err, type Err } from '@safe-std/error';
 import { timingSafeEqual } from './utils.ts';
 
 export interface Options {
@@ -41,7 +40,7 @@ export interface Options {
  */
 export const signer = (
   options?: Options,
-): ((pwd: BinaryLike) => Promise<string | Err<Error>>) => {
+): ((pwd: BinaryLike) => Promise<string | Error>) => {
   const { keyLen = 32, saltLen = 16 } = (options ??= {});
 
   const log2cost = (options.cost ??= 14);
@@ -61,13 +60,9 @@ export const signer = (
       randomBytes(saltLen, (e, salt) => {
         if (e == null)
           scrypt(pwd, salt, keyLen, options, (e, key) =>
-            res(
-              e == null
-                ? prefix + salt.toBase64() + '$' + key.toBase64()
-                : err(e),
-            ),
+            res(e ?? prefix + salt.toBase64() + '$' + key.toBase64()),
           );
-        else res(err(e));
+        else res(e);
       });
     });
 };

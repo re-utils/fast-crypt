@@ -29,8 +29,5 @@
   },
   "trustedDependencies": [
     "@biomejs/biome"
-  ],
-  "peerDependencies": {
-    "@safe-std/error": "^1.0.0"
-  }
+  ]
 }
