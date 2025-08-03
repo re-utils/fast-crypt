@@ -1,4 +1,4 @@
-import type { SecretList } from './secrets.ts';
+import { get, type SecretList } from './secrets.ts';
 import { toBase64URL, fromBase64URL, type SecretKey, timingSafeEqual } from './utils.ts';
 import { createHmac } from 'node:crypto';
 
@@ -10,6 +10,12 @@ export const sign = (
   value = toBase64URL(value);
   return value + '.' + createHmac(algorithm, secret).update(value).digest('base64url');
 }
+
+export const signSecrets = (
+  algorithm: string,
+  secrets: SecretList,
+  value: string,
+): string => sign(algorithm, get(secrets), value);
 
 export const verifyHash = (
   algorithm: string,
@@ -35,7 +41,7 @@ export const verify = (
   }
 }
 
-export const verifyAll = (
+export const verifySecrets = (
   algorithm: string,
   secrets: SecretList,
   value: string,
