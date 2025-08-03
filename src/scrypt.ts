@@ -47,7 +47,7 @@ export const signer = (
   options.cost = 2 ** log2cost;
 
   const prefix =
-    's0$' +
+    'scrypt0$' +
     log2cost +
     '$' +
     (options.blockSize ?? 8) +
@@ -69,7 +69,7 @@ export const signer = (
 
 export const verify = async (pwd: string, hash: string): Promise<boolean> => {
   const parts = hash.split('$', 6);
-  if (parts.length === 6 && parts[0] === 's0') {
+  if (parts.length === 6 && parts[0] === 'scrypt0') {
     const N = +parts[1];
     const r = +parts[2];
     const p = +parts[3];
