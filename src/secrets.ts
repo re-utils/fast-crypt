@@ -1,9 +1,6 @@
-import type { SecretKey } from "./utils.ts";
+import type { SecretKey } from './utils.ts';
 
-export type SecretList = [
-  list: SecretKey[],
-  idx: number
-];
+export type SecretList = [list: SecretKey[], idx: number];
 
 export const init = (list: SecretKey[]): SecretList => [list, 0];
 
