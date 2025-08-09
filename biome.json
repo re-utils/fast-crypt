@@ -1,19 +1,20 @@
 {
-  "$schema": "https://biomejs.dev/schemas/1.9.4/schema.json",
+  "$schema": "https://biomejs.dev/schemas/2.1.4/schema.json",
   "vcs": {
-    "enabled": false,
-    "clientKind": "git",
-    "useIgnoreFile": false
-  },
-  "organizeImports": {
-    "enabled": true
+    "enabled": false
   },
   "files": {
-    "include": ["./src/**/*", "./tests/**/*", "./bench/**/*", "./scripts/**/*"]
+    "experimentalScannerIgnores": ["node_modules"],
+    "includes": [
+      "**/*.{js,ts,jsx,tsx,json,astro,svelte,vue}",
+      "!{lib,bench}/**/*"
+    ]
   },
   "javascript": {
     "formatter": {
-      "quoteStyle": "single"
+      "quoteStyle": "single",
+      "arrowParentheses": "always",
+      "semicolons": "always"
     }
   },
   "formatter": {
@@ -26,39 +27,34 @@
     "enabled": true,
     "rules": {
       "style": {
-        "noArguments": "error",
+        "useConsistentArrayType": "error",
         "noNamespace": "error",
         "noImplicitBoolean": "warn",
         "noUselessElse": "error",
         "useCollapsedElseIf": "error",
         "useConst": "error",
-        "useNumericLiterals": "error",
         "useNodejsImportProtocol": "error",
         "useImportType": "error",
-        "useExponentiationOperator": "info",
-        "useTemplate": "off",
-        "noNonNullAssertion": "off",
-        "noParameterAssign": "off"
+        "useExponentiationOperator": "info"
       },
       "complexity": {
-        "noForEach": "info"
-      },
-      "performance": {
-        "noDelete": "off"
-      },
-      "nursery": {
-        "noCommonJs": "warn"
+        "noForEach": "info",
+        "noUselessCatch": "info",
+        "useArrowFunction": "warn"
       },
       "correctness": {
         "useYield": "warn",
         "noUnusedImports": "warn",
-        "useImportExtensions": "error"
+        "useImportExtensions": "error",
+        "useIsNan": "warn"
       },
-      "suspicious": {
-        "noAssignInExpressions": "off",
-        "noExplicitAny": "off",
-        "noImplicitAnyLet": "off"
-      }
+      "nursery": {
+        "noImportCycles": "error",
+        "noShadow": "error",
+        "useExhaustiveSwitchCases": "info",
+        "noUnassignedVariables": "warn"
+      },
+      "recommended": false
     }
   }
 }

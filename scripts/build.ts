@@ -1,67 +1,61 @@
 /// <reference types='bun-types' />
 import { existsSync, rmSync } from 'node:fs';
-
-import { transpileDeclaration } from 'typescript';
-import tsconfig from '../tsconfig.json';
+import { minify } from 'oxc-minify';
+import { transform } from 'oxc-transform';
 import pkg from '../package.json';
-import { cp, LIB, ROOT, SOURCE } from './utils.js';
+import { cp, LIB, ROOT, SOURCE } from './utils.ts';
 
 // Remove old content
 if (existsSync(LIB)) rmSync(LIB, { recursive: true });
 
-// Transpile files concurrently
-(async () => {
-  const transpiler = new Bun.Transpiler({
-    loader: 'ts',
-    target: 'node',
+// @ts-ignore
+const exports = (pkg.exports = {} as Record<string, string>);
 
-    // Lighter output
-    minifyWhitespace: true,
-    treeShaking: true,
-    trimUnusedImports: true,
-  });
+await Promise.all(
+  [...new Bun.Glob('**/*.ts').scanSync(SOURCE)].map(async (path) => {
+    const pathNoExt = path.slice(0, path.lastIndexOf('.') >>> 0);
 
-  // @ts-ignore
-  const exports = (pkg.exports = {} as Record<string, string>);
-
-  const promises: Promise<any>[] = [];
-
-  for (const path of new Bun.Glob('**/*.ts').scanSync(SOURCE)) {
-    promises.push(
-      (async () => {
-        const pathNoExt = path.substring(0, path.lastIndexOf('.') >>> 0);
-
-        const buf = await Bun.file(`${SOURCE}/${path}`).text();
-        Bun.write(
-          `${LIB}/${pathNoExt}.d.ts`,
-          transpileDeclaration(buf, tsconfig as any).outputText,
-        );
-
-        const transformed = await transpiler.transform(buf);
-        if (transformed !== '')
-          Bun.write(
-            `${LIB}/${pathNoExt}.js`,
-            transformed.replace(/const /g, 'let '),
-          );
-
-        exports[
-          pathNoExt === 'index'
-            ? '.'
-            : './' +
-              (pathNoExt.endsWith('/index')
-                ? pathNoExt.slice(0, -6)
-                : pathNoExt)
-        ] = './' + pathNoExt + (transformed === '' ? '.d.ts' : '.js');
-      })(),
+    const transformed = transform(
+      path,
+      await Bun.file(`${SOURCE}/${path}`).text(),
+      {
+        sourceType: 'module',
+        typescript: {
+          declaration: {
+            stripInternal: true,
+          },
+        },
+        lang: 'ts',
+      },
     );
-  }
 
-  await Promise.all(promises);
+    if (transformed.code !== '')
+      Bun.write(
+        `${LIB}/${pathNoExt}.js`,
+        minify(
+          path,
+          transformed.code.replace(/const (.*) =/g, (a) =>
+            a.replace('const', 'let'),
+          ),
+          {
+            compress: false,
+          },
+        ).code,
+      );
 
-  delete pkg.trustedDependencies;
-  delete pkg.devDependencies;
-  delete pkg.scripts;
+    if (transformed.declaration) {
+      Bun.write(`${LIB}/${pathNoExt}.d.ts`, transformed.declaration);
+      exports[
+        pathNoExt === 'index'
+          ? '.'
+          : './' +
+            (pathNoExt.endsWith('/index') ? pathNoExt.slice(0, -6) : pathNoExt)
+      ] = './' + pathNoExt + (transformed.code === '' ? '.d.ts' : '.js');
+    }
+  }),
+);
 
-  Bun.write(LIB + '/package.json', JSON.stringify(pkg, null, 2));
-  cp(ROOT, LIB, 'README.md');
-})();
+pkg.trustedDependencies = pkg.devDependencies = pkg.scripts = undefined as any;
+
+Bun.write(LIB + '/package.json', JSON.stringify(pkg));
+cp(ROOT, LIB, 'README.md');

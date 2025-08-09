@@ -1,24 +1,13 @@
-import { get, type SecretList } from './secrets.ts';
-import {
-  toBase64URL,
-  fromBase64URL,
-  type SecretKey,
-  timingSafeEqual,
-} from './utils.ts';
 import { createHmac } from 'node:crypto';
+import { get, type SecretList } from './secrets.ts';
+import { fromBase64URL, type SecretKey, timingSafeEqual } from './utils.ts';
 
 export const sign = (
   algorithm: string,
   secret: SecretKey,
   value: string,
-): string => {
-  value = toBase64URL(value);
-  return (
-    value +
-    '.' +
-    createHmac(algorithm, secret).update(value).digest('base64url')
-  );
-};
+): string =>
+  value + '.' + createHmac(algorithm, secret).update(value).digest('base64url');
 
 export const signSecrets = (
   algorithm: string,
@@ -36,7 +25,7 @@ export const verifyHash = (
     createHmac(algorithm, secret).update(value).digest(),
     fromBase64URL(hash),
   )
-    ? fromBase64URL(value).toString()
+    ? value
     : undefined;
 
 export const verify = (

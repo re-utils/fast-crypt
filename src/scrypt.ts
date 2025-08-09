@@ -1,5 +1,5 @@
-import { randomBytes, scrypt, type BinaryLike } from 'node:crypto';
 import { Buffer } from 'node:buffer';
+import { type BinaryLike, randomBytes, scrypt } from 'node:crypto';
 import { timingSafeEqual } from './utils.ts';
 
 export interface Options {
@@ -36,7 +36,7 @@ export interface Options {
 /**
  * Create a scrypt signer
  * @param options
- * @returns - A signer that create hashes with format: `s0$cost$blockSize$parallelization$salt$hash`
+ * @returns - A signer that create hashes with format: `$scrypt0$N={cost},r={blockSize},p={parallelization}${salt}${hash}`
  */
 export const signer = (
   options?: Options,
@@ -47,41 +47,42 @@ export const signer = (
   options.cost = 2 ** log2cost;
 
   const prefix =
-    'scrypt0$' +
+    '$scrypt0$N=' +
     log2cost +
-    '$' +
+    ',r=' +
     (options.blockSize ?? 8) +
-    '$' +
+    ',p=' +
     (options.parallelization ?? 1) +
     '$';
 
   return (pwd) =>
     new Promise((res) => {
-      randomBytes(saltLen, (e, salt) => {
-        if (e == null)
-          scrypt(pwd, salt, keyLen, options, (e, key) =>
-            res(e ?? prefix + salt.toBase64() + '$' + key.toBase64()),
+      randomBytes(saltLen, (e0, salt) => {
+        if (e0 == null)
+          scrypt(pwd, salt, keyLen, options, (e1, key) =>
+            res(e1 ?? prefix + salt.toBase64() + '$' + key.toBase64()),
           );
-        else res(e);
+        else res(e0);
       });
     });
 };
 
-export const verify = async (pwd: string, hash: string): Promise<boolean> => {
-  const parts = hash.split('$', 6);
-  if (parts.length === 6 && parts[0] === 'scrypt0') {
-    const N = +parts[1];
+export const verify = (
+  pwd: string,
+  hash: string,
+): Promise<boolean> | boolean => {
+  const parts =
+    /^\$scrypt0\$N=([1-9]|[1-5][0-9]|6[0-3]),r=(\d+),p=(\d+)\$([^$]+)\$([^$]+)$/.exec(
+      hash,
+    );
+
+  if (parts !== null) {
     const r = +parts[2];
     const p = +parts[3];
 
     if (
-      Number.isInteger(N) &&
       Number.isSafeInteger(r) &&
       Number.isSafeInteger(p) &&
-      N > 0 &&
-      N < 64 &&
-      p > 0 &&
-      r > 0 &&
       p * r <= 1073741824
     ) {
       const salt = Buffer.from(parts[4], 'base64');
@@ -93,7 +94,7 @@ export const verify = async (pwd: string, hash: string): Promise<boolean> => {
             pwd,
             salt,
             hashKey.byteLength,
-            { N: 2 ** N, r, p },
+            { N: 2 ** +parts[1], r, p },
             (err, pwdHash) => {
               res(err == null && timingSafeEqual(pwdHash, hashKey));
             },
