@@ -3,7 +3,6 @@
   "compilerOptions": {
     "isolatedModules": false,
     "isolatedDeclarations": false,
-    "allowJs": true,
-    "paths": {}
+    "allowJs": true
   }
 }

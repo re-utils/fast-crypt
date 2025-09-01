@@ -1,3 +1,5 @@
+export const pair = (name: string, value: string): string => name + '=' + value;
+
 // Cookie options
 export const path = (str: string): string => '; Path=' + str;
 export const domain = (str: string): string => '; Domain=' + str;
